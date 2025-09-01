@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import './App.css';
 import { 
@@ -34,6 +34,77 @@ function AppContent() {
   const [sortBy, setSortBy] = useState('newest');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Enhanced search and filter function
+  const filterAndSortResources = useCallback(() => {
+    let filtered = resources;
+
+    // Filter by search term (title, description, tags)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(resource => 
+        resource.title.toLowerCase().includes(searchLower) ||
+        resource.description.toLowerCase().includes(searchLower) ||
+        (resource.tags && resource.tags.some(tag => 
+          tag.toLowerCase().includes(searchLower)
+        ))
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(resource => resource.category === selectedCategory);
+    }
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(resource => 
+        resource.tags && selectedTags.every(tag => 
+          resource.tags.some(resourceTag => 
+            resourceTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
+
+    // Sort resources
+    switch (sortBy) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        break;
+      case 'mostViewed':
+        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        break;
+      case 'mostDownloaded':
+        filtered.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+        break;
+      case 'alphabetical':
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      default:
+        break;
+    }
+
+    setFilteredResources(filtered);
+  }, [resources, searchTerm, selectedCategory, selectedTags, sortBy]);
+
+  // Get all unique tags from resources
+  const getAllTags = useCallback(() => {
+    const allTags = resources.reduce((tags, resource) => {
+      if (resource.tags) {
+        resource.tags.forEach(tag => {
+          if (!tags.includes(tag.toLowerCase())) {
+            tags.push(tag.toLowerCase());
+          }
+        });
+      }
+      return tags;
+    }, []);
+    return allTags.sort();
+  }, [resources]);
 
   // Authentication state listener
   useEffect(() => {
@@ -72,6 +143,11 @@ function AppContent() {
     
     document.title = title;
   }, [window.location.pathname]);
+
+  // Update filtered resources when filters change
+  useEffect(() => {
+    filterAndSortResources();
+  }, [filterAndSortResources]);
 
   const loadResources = async () => {
     try {
@@ -144,6 +220,23 @@ function AppContent() {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  // Handle tag selection
+  const handleTagToggle = (tag) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedTags([]);
+    setSortBy('newest');
   };
 
   // Navigation Component
@@ -220,206 +313,6 @@ function AppContent() {
     );
   }
 
-  // Enhanced search and filter function
-  const filterAndSortResources = useCallback(() => {
-    let filtered = resources;
-
-    // Filter by search term (title, description, tags)
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(resource => 
-        resource.title.toLowerCase().includes(searchLower) ||
-        resource.description.toLowerCase().includes(searchLower) ||
-        (resource.tags && resource.tags.some(tag => 
-          tag.toLowerCase().includes(searchLower)
-        ))
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(resource => resource.category === selectedCategory);
-    }
-
-    // Filter by selected tags
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter(resource => 
-        resource.tags && selectedTags.every(tag => 
-          resource.tags.some(resourceTag => 
-            resourceTag.toLowerCase().includes(tag.toLowerCase())
-          )
-        )
-      );
-    }
-
-    // Sort resources
-    switch (sortBy) {
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        break;
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        break;
-      case 'mostViewed':
-        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-        break;
-      case 'mostDownloaded':
-        filtered.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
-        break;
-      case 'alphabetical':
-        filtered.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      default:
-        break;
-    }
-
-    setFilteredResources(filtered);
-  }, [resources, searchTerm, selectedCategory, selectedTags, sortBy]);
-
-  // Update filtered resources when filters change
-  useEffect(() => {
-    filterAndSortResources();
-  }, [filterAndSortResources]);
-
-  // Get all unique tags from resources
-  const getAllTags = useCallback(() => {
-    const allTags = resources.reduce((tags, resource) => {
-      if (resource.tags) {
-        resource.tags.forEach(tag => {
-          if (!tags.includes(tag.toLowerCase())) {
-            tags.push(tag.toLowerCase());
-          }
-        });
-      }
-      return tags;
-    }, []);
-    return allTags.sort();
-  }, [resources]);
-
-  // Handle tag selection
-  const handleTagToggle = (tag) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-  };
-
-  // Clear all filters
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory('all');
-    setSelectedTags([]);
-    setSortBy('newest');
-  };
-
-  // Upload Page Component
-  function UploadPage() {
-    const [formData, setFormData] = useState({
-      title: '',
-      description: '',
-      category: 'mathematics',
-      downloadUrl: '',
-      tags: ''
-    });
-    const [uploading, setUploading] = useState(false);
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      if (!user) {
-        setError('Please login to add resources');
-        return;
-      }
-
-      try {
-        setUploading(true);
-        setError('');
-        
-        const resourceData = {
-          ...formData,
-          tags: formData.tags.split(',').map(tag => tag.trim()),
-          authorId: user.uid,
-          authorEmail: user.email,
-          authorName: user.displayName || user.email
-        };
-        
-        await addResource(resourceData);
-        
-        setFormData({
-          title: '',
-          description: '',
-          category: 'mathematics',
-          downloadUrl: '',
-          tags: ''
-        });
-        
-        alert('Resource added successfully!');
-        loadResources();
-      } catch (error) {
-        setError('Failed to add resource: ' + error.message);
-      } finally {
-        setUploading(false);
-      }
-    };
-
-    return (
-      <div className="upload-page">
-        <h2>Add Educational Resource</h2>
-        <p className="note">Share links to educational resources (Google Drive, Dropbox, etc.)</p>
-        
-        {error && <div className="error">{error}</div>}
-        
-        <form onSubmit={handleSubmit} className="upload-form">
-          <input
-            type="text"
-            placeholder="Resource Title"
-            value={formData.title}
-            onChange={(e) => setFormData({...formData, title: e.target.value})}
-            required
-          />
-          
-          <textarea
-            placeholder="Description"
-            value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-            required
-          />
-          
-          <select
-            value={formData.category}
-            onChange={(e) => setFormData({...formData, category: e.target.value})}
-          >
-            <option value="mathematics">Mathematics</option>
-            <option value="english">English</option>
-            <option value="science">Science</option>
-            <option value="social-studies">Social Studies</option>
-            <option value="vocational">Vocational</option>
-          </select>
-          
-          <input
-            type="url"
-            placeholder="Download URL (Google Drive, Dropbox, etc.)"
-            value={formData.downloadUrl}
-            onChange={(e) => setFormData({...formData, downloadUrl: e.target.value})}
-            required
-          />
-          
-          <input
-            type="text"
-            placeholder="Tags (comma separated)"
-            value={formData.tags}
-            onChange={(e) => setFormData({...formData, tags: e.target.value})}
-          />
-          
-          <button type="submit" disabled={uploading}>
-            {uploading ? 'Adding Resource...' : 'Add Resource'}
-          </button>
-        </form>
-      </div>
-    );
-  }
-
-  // Library Page Component
   function LibraryPage() {
     const availableTags = getAllTags();
     const hasActiveFilters = searchTerm || selectedCategory !== 'all' || selectedTags.length > 0;
@@ -582,6 +475,106 @@ function AppContent() {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Upload Page Component
+  function UploadPage() {
+    const [formData, setFormData] = useState({
+      title: '',
+      description: '',
+      category: 'textbook',
+      tags: '',
+      downloadUrl: ''
+    });
+    const [uploading, setUploading] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        setUploading(true);
+        setError('');
+        
+        const resourceData = {
+          ...formData,
+          tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+          createdAt: new Date().toISOString(),
+          views: 0,
+          downloads: 0,
+          uploadedBy: user.uid,
+          uploaderName: user.displayName || user.email
+        };
+        
+        await addResource(resourceData);
+        setFormData({
+          title: '',
+          description: '',
+          category: 'textbook',
+          tags: '',
+          downloadUrl: ''
+        });
+        alert('Resource uploaded successfully!');
+        navigate('/library');
+      } catch (error) {
+        setError('Upload failed: ' + error.message);
+      } finally {
+        setUploading(false);
+      }
+    };
+
+    return (
+      <div className="upload-page">
+        <h2>Upload Educational Resource</h2>
+        {error && <div className="error">{error}</div>}
+        
+        <form onSubmit={handleSubmit} className="upload-form">
+          <input
+            type="text"
+            placeholder="Resource Title"
+            value={formData.title}
+            onChange={(e) => setFormData({...formData, title: e.target.value})}
+            required
+          />
+          
+          <textarea
+            placeholder="Description"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            required
+          />
+          
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({...formData, category: e.target.value})}
+          >
+            <option value="textbook">Textbook</option>
+            <option value="worksheet">Worksheet</option>
+            <option value="lesson-plan">Lesson Plan</option>
+            <option value="presentation">Presentation</option>
+            <option value="video">Video</option>
+            <option value="other">Other</option>
+          </select>
+          
+          <input
+            type="text"
+            placeholder="Tags (comma-separated)"
+            value={formData.tags}
+            onChange={(e) => setFormData({...formData, tags: e.target.value})}
+          />
+          
+          <input
+            type="url"
+            placeholder="Download URL"
+            value={formData.downloadUrl}
+            onChange={(e) => setFormData({...formData, downloadUrl: e.target.value})}
+            required
+          />
+          
+          <button type="submit" disabled={uploading}>
+            {uploading ? 'Uploading...' : 'Upload Resource'}
+          </button>
+        </form>
       </div>
     );
   }
