@@ -20,12 +20,12 @@ function HomePage() {
       <div className="hero-section">
         <h1>Welcome to EduNaija 🇳🇬</h1>
         <p>Your gateway to quality Nigerian educational resources</p>
-        <Link to="/library" className="cta-button">
-          Explore Resources
-        </Link>
       </div>
       
       <div className="features-section">
+        <Link to="/library" className="cta-button">
+          Explore Resources
+        </Link>
         <div className="feature-card">
           <h3>📚 Comprehensive Library</h3>
           <p>Access a wide range of educational materials</p>

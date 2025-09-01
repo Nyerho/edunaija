@@ -200,11 +200,22 @@ body::before {
 }
 
 /* Features Grid */
+.features-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.features-section .cta-button {
+  margin-bottom: 1rem;
+}
+
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
-  margin-top: 3rem;
+  width: 100%;
 }
 
 .feature-card {
