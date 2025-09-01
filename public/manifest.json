@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "EduNaija",
+  "name": "EduNaija - Nigerian Educational Resources",
+  "description": "Your gateway to quality Nigerian educational resources",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,7 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#008751",
+  "background_color": "#ffffff",
+  "categories": ["education", "productivity"]
 }
