@@ -744,3 +744,28 @@ body::before {
 .auth-switch a:hover {
   text-decoration: underline;
 }
+
+/* Add these styles after the existing nav-button styles */
+
+.user-info {
+  color: #1a472a;
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+  color: white !important;
+  border-color: #dc2626 !important;
+}
+
+.logout-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%) !important;
+  border-color: #b91c1c !important;
+}
+
+/* Ensure main content has proper spacing */
+.main-content {
+  padding-top: 2rem;
+}

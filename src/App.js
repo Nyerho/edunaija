@@ -656,28 +656,30 @@ function AppContent() {
 
   return (
     <div className="App">
-      <nav className="navbar">
-        <div className="nav-brand">
-          <Link to="/">EduNaija 🇳🇬</Link>
-        </div>
-        <div className="nav-links">
-          <Link to="/">Home</Link>
-          <Link to="/library">Library</Link>
-          {user ? (
-            <>
-              <Link to="/upload">Upload</Link>
-              <span className="user-info">Welcome, {user.displayName || user.email}</span>
-              <button onClick={handleLogout} className="logout-btn">Logout</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          )}
-        </div>
-      </nav>
-
+      <div className="nav-container">
+        <nav className="nav">
+          <div className="logo">
+            <Link to="/">EduNaija 🇳🇬</Link>
+          </div>
+          <div className="nav-buttons">
+            <Link to="/" className="nav-button">Home</Link>
+            <Link to="/library" className="nav-button">Library</Link>
+            {user ? (
+              <>
+                <Link to="/upload" className="nav-button">Upload</Link>
+                <span className="user-info">Welcome, {user.displayName || user.email}</span>
+                <button onClick={handleLogout} className="nav-button logout-btn">Logout</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="nav-button">Login</Link>
+                <Link to="/register" className="nav-button">Register</Link>
+              </>
+            )}
+          </div>
+        </nav>
+      </div>
+    
       <main className="main-content">
         <Routes>
           <Route path="/" element={<HomePage />} />
