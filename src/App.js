@@ -43,8 +43,31 @@ function HomePage() {
   );
 }
 
+// Skeleton Loading Component
+function SkeletonCard() {
+  return (
+    <div className="skeleton-card">
+      <div className="skeleton skeleton-title"></div>
+      <div className="skeleton skeleton-category"></div>
+      <div className="skeleton skeleton-description"></div>
+      <div className="skeleton skeleton-description"></div>
+      <div className="skeleton skeleton-button"></div>
+    </div>
+  );
+}
+
+// Enhanced Loading Component
+function LoadingSpinner({ text = "Loading..." }) {
+  return (
+    <div className="loading">
+      <div className="spinner"></div>
+      <div className="loading-text">{text}</div>
+    </div>
+  );
+}
+
 // Library Page Content Component
-function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory, selectedTags, setSelectedTags, sortBy, setSortBy, availableTags, handleTagToggle, clearFilters }) {
+function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory, selectedTags, setSelectedTags, sortBy, setSortBy, availableTags, handleTagToggle, clearFilters, loading }) {
   const handleResourceClick = async (resource) => {
     try {
       await updateResourceStats(resource.id, 'view');
@@ -72,6 +95,7 @@ function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCate
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
+            disabled={loading}
           />
         </div>
         
@@ -80,6 +104,7 @@ function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCate
             value={selectedCategory} 
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="filter-select"
+            disabled={loading}
           >
             <option value="">All Categories</option>
             <option value="textbook">Textbooks</option>
@@ -94,6 +119,7 @@ function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCate
             value={sortBy} 
             onChange={(e) => setSortBy(e.target.value)}
             className="filter-select"
+            disabled={loading}
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -102,7 +128,7 @@ function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCate
             <option value="alphabetical">A-Z</option>
           </select>
           
-          <button onClick={clearFilters} className="clear-filters-btn">
+          <button onClick={clearFilters} className="clear-filters-btn" disabled={loading}>
             Clear Filters
           </button>
         </div>
@@ -116,6 +142,7 @@ function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCate
                   key={tag}
                   onClick={() => handleTagToggle(tag)}
                   className={`tag-button ${selectedTags.includes(tag) ? 'active' : ''}`}
+                  disabled={loading}
                 >
                   {tag}
                 </button>
@@ -126,38 +153,45 @@ function LibraryPageContent({ resources, searchTerm, setSearchTerm, selectedCate
       </div>
       
       <div className="resources-grid">
-        {resources.map(resource => (
-          <div key={resource.id} className="resource-card" onClick={() => handleResourceClick(resource)}>
-            <h3>{resource.title}</h3>
-            <p className="resource-description">{resource.description}</p>
-            <div className="resource-meta">
-              <span className="category">{resource.category}</span>
-              <div className="stats">
-                <span>👁 {resource.views || 0}</span>
-                <span>⬇ {resource.downloads || 0}</span>
+        {loading ? (
+          // Show skeleton cards while loading
+          Array.from({ length: 6 }, (_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        ) : (
+          resources.map(resource => (
+            <div key={resource.id} className="resource-card" onClick={() => handleResourceClick(resource)}>
+              <h3>{resource.title}</h3>
+              <p className="resource-description">{resource.description}</p>
+              <div className="resource-meta">
+                <span className="category">{resource.category}</span>
+                <div className="stats">
+                  <span>👁 {resource.views || 0}</span>
+                  <span>⬇ {resource.downloads || 0}</span>
+                </div>
               </div>
+              {resource.tags && resource.tags.length > 0 && (
+                <div className="resource-tags">
+                  {resource.tags.map(tag => (
+                    <span key={tag} className="tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownload(resource);
+                }}
+                className="download-btn"
+              >
+                Download
+              </button>
             </div>
-            {resource.tags && resource.tags.length > 0 && (
-              <div className="resource-tags">
-                {resource.tags.map(tag => (
-                  <span key={tag} className="tag">{tag}</span>
-                ))}
-              </div>
-            )}
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownload(resource);
-              }}
-              className="download-btn"
-            >
-              Download
-            </button>
-          </div>
-        ))}
+          ))
+        )}
       </div>
       
-      {resources.length === 0 && (
+      {!loading && resources.length === 0 && (
         <div className="no-resources">
           <p>No resources found. Try adjusting your search or filters.</p>
         </div>
@@ -285,6 +319,7 @@ function LibraryPage() {
       availableTags={availableTags}
       handleTagToggle={handleTagToggle}
       clearFilters={clearFilters}
+      loading={loading}
     />
   );
 }
@@ -461,9 +496,9 @@ function LoginPage() {
       {error && <div className="error">{error}</div>}
       
       <button 
-        className="google-signin-btn"
+        className={`google-signin-btn ${loading ? 'button-loading' : ''}`}
         onClick={handleGoogleSignIn}
-        disabled={loading}
+        disabled={loading || loggingIn}
       >
         <span className="google-icon">🔍</span>
         {loading ? 'Signing in...' : 'Continue with Google'}
@@ -473,13 +508,15 @@ function LoginPage() {
         <span>or</span>
       </div>
       
-      <form onSubmit={handleLogin} className="auth-form">
+      <form onSubmit={handleLogin} className={`auth-form ${(loggingIn || loading) ? 'form-loading' : ''}`}>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={loggingIn || loading}
+          className={loggingIn || loading ? 'input-loading' : ''}
         />
         <input
           type="password"
@@ -487,8 +524,14 @@ function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          disabled={loggingIn || loading}
+          className={loggingIn || loading ? 'input-loading' : ''}
         />
-        <button type="submit" disabled={loggingIn}>
+        <button 
+          type="submit" 
+          disabled={loggingIn || loading}
+          className={loggingIn ? 'button-loading' : ''}
+        >
           {loggingIn ? 'Logging in...' : 'Login with Email'}
         </button>
       </form>
@@ -651,7 +694,7 @@ function AppContent() {
   };
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <LoadingSpinner text="Loading EduNaija..." />;
   }
 
   return (
