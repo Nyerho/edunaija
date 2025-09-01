@@ -26,9 +26,12 @@ function App() {
 function AppContent() {
   const [user, setUser] = useState(null);
   const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [filteredResources, setFilteredResources] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [sortBy, setSortBy] = useState('newest');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -217,69 +220,98 @@ function AppContent() {
     );
   }
 
-  // Library Page Component
-  function LibraryPage() {
-    return (
-      <div className="library-page">
-        <div className="search-section">
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search resources..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <select 
-              value={selectedCategory} 
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="all">All Categories</option>
-              <option value="mathematics">Mathematics</option>
-              <option value="english">English</option>
-              <option value="science">Science</option>
-              <option value="social-studies">Social Studies</option>
-              <option value="vocational">Vocational</option>
-            </select>
-            <button onClick={handleSearch}>Search</button>
-          </div>
-        </div>
+  // Enhanced search and filter function
+  const filterAndSortResources = useCallback(() => {
+    let filtered = resources;
 
-        {loading && <div className="loading">Loading resources...</div>}
-        {error && <div className="error">{error}</div>}
+    // Filter by search term (title, description, tags)
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(resource => 
+        resource.title.toLowerCase().includes(searchLower) ||
+        resource.description.toLowerCase().includes(searchLower) ||
+        (resource.tags && resource.tags.some(tag => 
+          tag.toLowerCase().includes(searchLower)
+        ))
+      );
+    }
 
-        <div className="resources-grid">
-          {resources.map(resource => (
-            <div 
-              key={resource.id} 
-              className="resource-card"
-              onClick={() => handleResourceClick(resource.id)}
-            >
-              <h3>{resource.title}</h3>
-              <p>{resource.description}</p>
-              <div className="resource-meta">
-                <span className="category">{resource.category}</span>
-                <span className="stats">
-                  👁️ {resource.views || 0} | ⬇️ {resource.downloads || 0}
-                </span>
-              </div>
-              {resource.downloadUrl && (
-                <button 
-                  className="download-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownload(resource.id, resource.downloadUrl);
-                  }}
-                >
-                  Download
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(resource => resource.category === selectedCategory);
+    }
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(resource => 
+        resource.tags && selectedTags.every(tag => 
+          resource.tags.some(resourceTag => 
+            resourceTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    }
+
+    // Sort resources
+    switch (sortBy) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        break;
+      case 'mostViewed':
+        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        break;
+      case 'mostDownloaded':
+        filtered.sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+        break;
+      case 'alphabetical':
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      default:
+        break;
+    }
+
+    setFilteredResources(filtered);
+  }, [resources, searchTerm, selectedCategory, selectedTags, sortBy]);
+
+  // Update filtered resources when filters change
+  useEffect(() => {
+    filterAndSortResources();
+  }, [filterAndSortResources]);
+
+  // Get all unique tags from resources
+  const getAllTags = useCallback(() => {
+    const allTags = resources.reduce((tags, resource) => {
+      if (resource.tags) {
+        resource.tags.forEach(tag => {
+          if (!tags.includes(tag.toLowerCase())) {
+            tags.push(tag.toLowerCase());
+          }
+        });
+      }
+      return tags;
+    }, []);
+    return allTags.sort();
+  }, [resources]);
+
+  // Handle tag selection
+  const handleTagToggle = (tag) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
     );
-  }
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('all');
+    setSelectedTags([]);
+    setSortBy('newest');
+  };
 
   // Upload Page Component
   function UploadPage() {
@@ -383,6 +415,173 @@ function AppContent() {
             {uploading ? 'Adding Resource...' : 'Add Resource'}
           </button>
         </form>
+      </div>
+    );
+  }
+
+  // Library Page Component
+  function LibraryPage() {
+    const availableTags = getAllTags();
+    const hasActiveFilters = searchTerm || selectedCategory !== 'all' || selectedTags.length > 0;
+
+    return (
+      <div className="library-page">
+        <h2>Educational Resources Library</h2>
+        
+        {/* Search Bar */}
+        <div className="search-section">
+          <input
+            type="text"
+            placeholder="Search resources by title, description, or tags..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+
+        {/* Filters Section */}
+        <div className="filters-section">
+          {/* Category Filter */}
+          <div className="filter-group">
+            <label>Category:</label>
+            <select 
+              value={selectedCategory} 
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="category-select"
+            >
+              <option value="all">All Categories</option>
+              <option value="mathematics">Mathematics</option>
+              <option value="english">English</option>
+              <option value="science">Science</option>
+              <option value="social-studies">Social Studies</option>
+              <option value="vocational">Vocational</option>
+            </select>
+          </div>
+
+          {/* Sort Options */}
+          <div className="filter-group">
+            <label>Sort by:</label>
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+              className="sort-select"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="mostViewed">Most Viewed</option>
+              <option value="mostDownloaded">Most Downloaded</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </div>
+
+          {/* Clear Filters Button */}
+          {hasActiveFilters && (
+            <button 
+              onClick={clearFilters}
+              className="clear-filters-btn"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+
+        {/* Tags Filter */}
+        {availableTags.length > 0 && (
+          <div className="tags-section">
+            <label>Filter by tags:</label>
+            <div className="tags-container">
+              {availableTags.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => handleTagToggle(tag)}
+                  className={`tag-btn ${
+                    selectedTags.includes(tag) ? 'tag-selected' : ''
+                  }`}
+                >
+                  {tag}
+                  {selectedTags.includes(tag) && ' ✕'}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Results Summary */}
+        <div className="results-summary">
+          <p>
+            Showing {filteredResources.length} of {resources.length} resources
+            {hasActiveFilters && ' (filtered)'}
+          </p>
+        </div>
+
+        {/* Loading State */}
+        {loading && <div className="loading">Loading resources...</div>}
+        
+        {/* Error State */}
+        {error && <div className="error">{error}</div>}
+        
+        {/* No Results */}
+        {!loading && filteredResources.length === 0 && resources.length > 0 && (
+          <div className="no-results">
+            <p>No resources found matching your criteria.</p>
+            <button onClick={clearFilters} className="clear-filters-btn">
+              Clear all filters
+            </button>
+          </div>
+        )}
+        
+        {/* Empty State */}
+        {!loading && resources.length === 0 && (
+          <div className="empty-state">
+            <p>No resources available yet. Be the first to add one!</p>
+            {user && (
+              <button onClick={() => navigate('/upload')} className="cta-btn">
+                Add Resource
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Resources Grid */}
+        <div className="resources-grid">
+          {filteredResources.map(resource => (
+            <div 
+              key={resource.id} 
+              className="resource-card"
+              onClick={() => handleResourceClick(resource.id)}
+            >
+              <h3>{resource.title}</h3>
+              <p>{resource.description}</p>
+              <div className="resource-meta">
+                <span className="category">{resource.category}</span>
+                <span className="stats">
+                  👁️ {resource.views || 0} | ⬇️ {resource.downloads || 0}
+                </span>
+              </div>
+              {resource.tags && resource.tags.length > 0 && (
+                <div className="resource-tags">
+                  {resource.tags.slice(0, 3).map(tag => (
+                    <span key={tag} className="resource-tag">{tag}</span>
+                  ))}
+                  {resource.tags.length > 3 && (
+                    <span className="resource-tag">+{resource.tags.length - 3} more</span>
+                  )}
+                </div>
+              )}
+              {resource.downloadUrl && (
+                <button 
+                  className="download-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(resource.id, resource.downloadUrl);
+                  }}
+                >
+                  Download
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
