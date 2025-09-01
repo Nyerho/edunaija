@@ -68,6 +68,20 @@ body::before {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.logo a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo a:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo a:visited {
+  color: inherit;
+}
+
 .nav-buttons {
   display: flex;
   gap: 1rem;
@@ -173,20 +187,22 @@ body::before {
 
 .hero-title {
   font-size: 3rem;
-  color: #1a472a;
+  color: #0f3a1f;
   margin-bottom: 1rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
 }
 
 .hero-subtitle {
   font-size: 1.2rem;
-  color: #374151;
+  color: #1a472a;
   margin-bottom: 4rem;
   line-height: 1.6;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
   font-family: 'Times New Roman', Times, serif;
+  font-weight: 600;
 }
 
 .cta-button {
@@ -269,8 +285,15 @@ body::before {
 
 .feature-title {
   font-size: 1.5rem;
-  color: #1a472a;
+  color: #0f3a1f;
   margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.feature-description {
+  color: #1a472a;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .feature-description {
@@ -796,4 +819,21 @@ body::before {
 /* Ensure main content has proper spacing */
 .main-content {
   padding-top: 2rem;
+}
+
+/* Make all headings darker and bolder */
+h1, h2, h3, h4, h5, h6 {
+  color: #0f3a1f !important;
+  font-weight: bold;
+}
+
+/* General text improvements */
+p, span, div {
+  color: #1a472a;
+}
+
+/* Navigation text */
+.nav a, .nav-button {
+  color: #0f3a1f;
+  font-weight: 600;
 }

@@ -659,7 +659,7 @@ function AppContent() {
       <div className="nav-container">
         <nav className="nav">
           <div className="logo">
-            <Link to="/">EduNaija 🇳🇬</Link>
+            <Link to="/">🎓 EduNaija 🇳🇬</Link>
           </div>
           <div className="nav-buttons">
             <Link to="/" className="nav-button">Home</Link>
