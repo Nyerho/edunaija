@@ -741,7 +741,65 @@ function AppContent() {
           />
         </Routes>
       </main>
+      
+      <Footer />
     </div>
+  );
+}
+
+// Move Footer component here (outside AppContent function)
+function Footer() {
+  return (
+    <footer className="footer">
+      <div className="footer-content">
+        <div className="footer-section">
+          <h3>🎓 EduNaija</h3>
+          <p>Your gateway to quality Nigerian educational resources</p>
+          <div className="social-links">
+            <a href="#" className="social-link">📘 Facebook</a>
+            <a href="#" className="social-link">🐦 Twitter</a>
+            <a href="#" className="social-link">📸 Instagram</a>
+            <a href="#" className="social-link">💼 LinkedIn</a>
+          </div>
+        </div>
+        
+        <div className="footer-section">
+          <h4>Quick Links</h4>
+          <ul className="footer-links">
+            <li><Link to="/">Home</Link></li>
+            <li><Link to="/library">Library</Link></li>
+            <li><Link to="/upload">Upload Resource</Link></li>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div className="footer-section">
+          <h4>Categories</h4>
+          <ul className="footer-links">
+            <li><a href="#">Mathematics</a></li>
+            <li><a href="#">Science</a></li>
+            <li><a href="#">English</a></li>
+            <li><a href="#">History</a></li>
+            <li><a href="#">Geography</a></li>
+          </ul>
+        </div>
+        
+        <div className="footer-section">
+          <h4>Support</h4>
+          <ul className="footer-links">
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Report Content</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div className="footer-bottom">
+        <p>&copy; 2024 EduNaija. Made with ❤️ for Nigerian Education</p>
+      </div>
+    </footer>
   );
 }
 
