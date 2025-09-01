@@ -43,13 +43,13 @@ body::before {
 
 /* Navigation */
 .nav-container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: transparent;
+  backdrop-filter: none;
   border-bottom: 1px solid rgba(26, 71, 42, 0.1);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .nav {
@@ -117,13 +117,22 @@ body::before {
   padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.8);
+  /* Remove or comment out the white background */
+  /* background: rgba(255, 255, 255, 0.8); */
   backdrop-filter: blur(10px);
   border-radius: 20px;
   margin-top: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Home Page Specific - ensure no white overlay */
+.home-page {
+  background: transparent;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* Home Page Specific */
