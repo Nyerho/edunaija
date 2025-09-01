@@ -6,7 +6,7 @@ import {
   getDocs, 
   doc, 
   updateDoc, 
-  deleteDoc, 
+  // deleteDoc, // Remove unused import
   query, 
   orderBy, 
   where,

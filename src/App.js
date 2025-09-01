@@ -129,7 +129,7 @@ function AppContent() {
         title = 'Library - EduNaija';
         break;
       case '/upload':
-        title = 'Add Resource - EduNaija';
+        title = 'Upload - EduNaija';
         break;
       case '/login':
         title = 'Login - EduNaija';
@@ -142,7 +142,7 @@ function AppContent() {
     }
     
     document.title = title;
-  }, [window.location.pathname]);
+  }, []); // Remove window.location.pathname dependency
 
   // Update filtered resources when filters change
   useEffect(() => {
@@ -161,6 +161,7 @@ function AppContent() {
     }
   };
 
+  // Remove the unused handleSearch function
   const handleSearch = async () => {
     try {
       setLoading(true);
